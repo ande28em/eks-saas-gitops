@@ -39,9 +39,9 @@ resource "aws_s3_bucket" "codeartifacts" {
 }
 
 module "codecommit" {
-  source          = "lgallard/codecommit/aws"
-  version         = "0.2.1"
-  for_each        = var.microservices
+  source   = "lgallard/codecommit/aws"
+  version  = "0.2.1"
+  for_each = var.microservices
 
   repository_name = each.key
   description     = each.value.description
@@ -49,9 +49,9 @@ module "codecommit" {
 }
 
 module "git_hub_repositories" {
-  source = "../git"
-  for_each        = var.microservices
-  name = each.key
+  source      = "../git"
+  for_each    = var.microservices
+  name        = each.key
   description = each.value.description
 }
 
@@ -73,8 +73,8 @@ resource "aws_ecr_repository" "microservice_container" {
 }
 
 module "codebuild_project" {
-  source                 = "../codebuild"
-  for_each               = var.microservices
+  source   = "../codebuild"
+  for_each = var.microservices
 
   vpc_id                 = var.vpc_id
   codebuild_project_name = each.value.codebuild_project_name
@@ -84,11 +84,13 @@ module "codebuild_project" {
 }
 
 module "codepipeline" {
-  source            = "../codepipeline"
-  for_each          = var.microservices
+  source   = "../codepipeline"
+  for_each = var.microservices
 
-  pipeline_name     = each.value.pipeline_name
-  codebuild_project = module.codebuild_project[each.key].name
-  repo_name         = module.codecommit[each.key].name
-  bucket_id         = aws_s3_bucket.codeartifacts.id
+  pipeline_name      = each.value.pipeline_name
+  codebuild_project  = module.codebuild_project[each.key].name
+  repo_name          = module.codecommit[each.key].name
+  bucket_id          = aws_s3_bucket.codeartifacts.id
+  github_oauth_token = var.github_personal_token
+  github_owner       = var.github_owner
 }

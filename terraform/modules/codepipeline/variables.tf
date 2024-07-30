@@ -46,3 +46,7 @@ variable "bucket_id" {
 variable "github_oauth_token" {
   description = "GitHub personal Access Token to integrate CodePipeline"
 }
+
+variable "github_owner" {
+  description = "GitHub Owner or Org"
+}

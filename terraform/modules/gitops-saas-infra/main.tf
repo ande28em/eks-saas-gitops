@@ -1,5 +1,5 @@
 locals {
-  name   = var.name
+  name                 = var.name
   code_commit_username = "codecommit-user"
 }
 
@@ -597,9 +597,9 @@ resource "aws_iam_user_policy_attachment" "codecommit_user_attach" {
 
 resource "aws_iam_user_ssh_key" "codecommit_user" {
   username   = local.code_commit_username
-  encoding   = "SSH" # Use "SSH" for SSH public keys
+  encoding   = "SSH"                               # Use "SSH" for SSH public keys
   public_key = file("${var.public_key_file_path}") # Adjust the path as necessary
-   lifecycle {
+  lifecycle {
     ignore_changes = [
       public_key,
     ]
@@ -614,11 +614,11 @@ module "tf_controller_irsa_role" {
   version = "5.30.0"
 
   role_name = "tf-controller-${var.name}"
-  
+
   role_policy_arns = {
     policy = "arn:aws:iam::aws:policy/AdministratorAccess"
   }
-  
+
 
   oidc_providers = {
     main = {

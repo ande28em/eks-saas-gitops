@@ -52,6 +52,10 @@ variable "kustomization_path" {
 }
 
 ###### Git Provider
+variable "github_owner" {
+  default = "lusoal"
+}
+
 variable "github_personal_token" {
   description = "GitHub Personal Access Token"
   type        = string

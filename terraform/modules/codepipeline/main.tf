@@ -39,42 +39,42 @@ resource "aws_codepipeline" "pipeline" {
     type     = "S3"
   }
 
-  stage {
-    name = "Source"
-
-    action {
-      name             = "Source"
-      category         = "Source"
-      owner            = "AWS"
-      provider         = "CodeCommit"
-      version          = "1"
-      output_artifacts = ["SourceArtifact"]
-
-      configuration = {
-        RepositoryName = var.repo_name //MUST BE the name of the your codecommit repo
-        BranchName     = var.branch_name
-      }
-    }
-  }
   # stage {
   #   name = "Source"
 
   #   action {
   #     name             = "Source"
   #     category         = "Source"
-  #     owner            = "ThirdParty"
-  #     provider         = "GitHub"
+  #     owner            = "AWS"
+  #     provider         = "CodeCommit"
   #     version          = "1"
   #     output_artifacts = ["SourceArtifact"]
 
   #     configuration = {
-  #       Owner         = var.github_owner
-  #       Repo          = var.repo_name
-  #       Branch        = var.branch_name
-  #       OAuthToken    = var.github_oauth_token
+  #       RepositoryName = var.repo_name //MUST BE the name of the your codecommit repo
+  #       BranchName     = var.branch_name
   #     }
   #   }
   # }
+  stage {
+    name = "Source"
+
+    action {
+      name             = "Source"
+      category         = "Source"
+      owner            = "ThirdParty"
+      provider         = "GitHub"
+      version          = "1"
+      output_artifacts = ["SourceArtifact"]
+
+      configuration = {
+        Owner      = var.github_owner
+        Repo       = var.repo_name
+        Branch     = var.branch_name
+        OAuthToken = var.github_oauth_token
+      }
+    }
+  }
 
   stage {
     name = "Build"

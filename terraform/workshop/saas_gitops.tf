@@ -7,6 +7,7 @@ module "gitops_saas_infra" {
   private_subnets           = module.vpc.private_subnets
   public_key_file_path      = var.public_key_file_path # Upload to user created by this module, local executer should have the private key as well
   github_personal_token     = var.github_personal_token
+  github_owner              = var.github_owner
   depends_on                = [data.aws_availability_zones.available, data.aws_caller_identity.current, data.aws_region.current]
 }
 
