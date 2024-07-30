@@ -50,3 +50,10 @@ variable "kustomization_path" {
   type        = string
   default     = "gitops/clusters/production"
 }
+
+###### Git Provider
+variable "github_personal_token" {
+  description = "GitHub Personal Access Token"
+  type        = string
+  default     = ""
+}

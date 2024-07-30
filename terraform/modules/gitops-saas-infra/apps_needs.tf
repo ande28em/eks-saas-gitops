@@ -48,6 +48,13 @@ module "codecommit" {
   default_branch  = each.value.default_branch
 }
 
+module "git_hub_repositories" {
+  source = "../git"
+  for_each        = var.microservices
+  name = each.key
+  description = each.value.description
+}
+
 
 resource "aws_ecr_repository" "microservice_container" {
   for_each = var.microservices

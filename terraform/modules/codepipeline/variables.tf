@@ -42,3 +42,7 @@ variable "bucket_id" {
   description = "Amazon S3 bucket ID"
   type        = string
 }
+
+variable "github_oauth_token" {
+  description = "GitHub personal Access Token to integrate CodePipeline"
+}

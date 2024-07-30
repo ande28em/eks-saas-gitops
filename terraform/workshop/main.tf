@@ -1,52 +1,3 @@
-# Versions
-terraform {
-  required_version = ">= 1.0"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 4.47"
-    }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = ">= 2.20"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = ">= 2.0"
-    }
-  }
-}
-
-# DataSources
-data "aws_eks_cluster_auth" "this" {
-  name = module.eks.cluster_name
-}
-
-data "aws_availability_zones" "available" {}
-
-data "aws_region" "current" {}
-
-data "aws_caller_identity" "current" {}
-
-# Providers
-provider "aws" {}
-
-provider "kubernetes" {
-  host                   = module.eks.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
-
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "aws"
-    # This requires the awscli to be installed locally where Terraform is executed
-    args = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--region", local.region]
-  }
-}
-
-################################################################################
-# Supporting Resources
-################################################################################
 locals {
   name   = var.name
   region = coalesce(var.aws_region, data.aws_region.current.name)
@@ -58,6 +9,10 @@ locals {
     Blueprint = var.name
   }
 }
+
+################################################################################
+# Networking
+################################################################################
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"

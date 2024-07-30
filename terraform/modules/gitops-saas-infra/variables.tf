@@ -81,3 +81,7 @@ variable "public_key_file_path" {
   default = "~/.ssh/id_rsa.pub"
 }
 
+variable "github_personal_token" {
+  description = "Value of GitHub Personal Access Tken to create repositories"
+}
+

@@ -6,8 +6,8 @@ module "gitops_saas_infra" {
   vpc_id                    = module.vpc.vpc_id
   private_subnets           = module.vpc.private_subnets
   public_key_file_path      = var.public_key_file_path # Upload to user created by this module, local executer should have the private key as well
-
-  depends_on = [data.aws_availability_zones.available, data.aws_caller_identity.current, data.aws_region.current]
+  github_personal_token     = var.github_personal_token
+  depends_on                = [data.aws_availability_zones.available, data.aws_caller_identity.current, data.aws_region.current]
 }
 
 resource "null_resource" "execute_templating_script" {
@@ -23,14 +23,14 @@ resource "null_resource" "execute_templating_script" {
 # Flux
 ################################################################################
 module "flux_v2" {
-  source                   = "../modules/flux_cd"
-  cluster_endpoint         = module.eks.cluster_endpoint
-  ca                       = module.eks.cluster_certificate_authority_data
-  token                    = data.aws_eks_cluster_auth.this.token
-  git_branch               = var.git_branch
-  git_url                  = module.gitops_saas_infra.aws_codecommit_flux_clone_url_ssh
-  kustomization_path       = var.kustomization_path
-  flux2_sync_secret_values = var.flux2_sync_secret_values
+  source                                     = "../modules/flux_cd"
+  cluster_endpoint                           = module.eks.cluster_endpoint
+  ca                                         = module.eks.cluster_certificate_authority_data
+  token                                      = data.aws_eks_cluster_auth.this.token
+  git_branch                                 = var.git_branch
+  git_url                                    = module.gitops_saas_infra.aws_codecommit_flux_clone_url_ssh
+  kustomization_path                         = var.kustomization_path
+  flux2_sync_secret_values                   = var.flux2_sync_secret_values
   image_automation_controller_sa_annotations = module.image_automation_irsa_role.iam_role_arn
   image_reflection_controller_sa_annotations = module.image_automation_irsa_role.iam_role_arn
 }

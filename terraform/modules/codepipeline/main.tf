@@ -56,6 +56,25 @@ resource "aws_codepipeline" "pipeline" {
       }
     }
   }
+  # stage {
+  #   name = "Source"
+
+  #   action {
+  #     name             = "Source"
+  #     category         = "Source"
+  #     owner            = "ThirdParty"
+  #     provider         = "GitHub"
+  #     version          = "1"
+  #     output_artifacts = ["SourceArtifact"]
+
+  #     configuration = {
+  #       Owner         = var.github_owner
+  #       Repo          = var.repo_name
+  #       Branch        = var.branch_name
+  #       OAuthToken    = var.github_oauth_token
+  #     }
+  #   }
+  # }
 
   stage {
     name = "Build"
