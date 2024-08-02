@@ -31,5 +31,5 @@ RUN curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubec
     mv ./kubectl /usr/local/bin/kubectl
 
 COPY . /
-# Display installed versions
+# Display installed versions TODO: Change Keyscan from CodeCommit ro GitHub
 RUN terraform version && git version && kubectl version --client && mkdir -p /root/.ssh/ && ssh-keyscan "git-codecommit.${AWS_REGION}.amazonaws.com" >> /root/.ssh/known_hosts
