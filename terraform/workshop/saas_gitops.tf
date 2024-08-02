@@ -29,7 +29,7 @@ module "flux_v2" {
   ca                                         = module.eks.cluster_certificate_authority_data
   token                                      = data.aws_eks_cluster_auth.this.token
   git_branch                                 = var.git_branch
-  git_url                                    = module.gitops_saas_infra.aws_codecommit_flux_clone_url_ssh
+  git_url                                    = module.gitops_saas_infra.aws_codecommit_flux_clone_url_ssh # TBD: Change to Git URL
   kustomization_path                         = var.kustomization_path
   flux2_sync_secret_values                   = var.flux2_sync_secret_values
   image_automation_controller_sa_annotations = module.image_automation_irsa_role.iam_role_arn

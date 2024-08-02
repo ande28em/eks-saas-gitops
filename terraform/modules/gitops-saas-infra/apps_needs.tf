@@ -38,15 +38,15 @@ resource "aws_s3_bucket" "codeartifacts" {
   force_destroy = true
 }
 
-module "codecommit" {
-  source   = "lgallard/codecommit/aws"
-  version  = "0.2.1"
-  for_each = var.microservices
+# module "codecommit" {
+#   source   = "lgallard/codecommit/aws"
+#   version  = "0.2.1"
+#   for_each = var.microservices
 
-  repository_name = each.key
-  description     = each.value.description
-  default_branch  = each.value.default_branch
-}
+#   repository_name = each.key
+#   description     = each.value.description
+#   default_branch  = each.value.default_branch
+# }
 
 module "git_hub_repositories" {
   source      = "../git"

@@ -578,12 +578,18 @@ module "lb_controller_irsa" {
 ################################################################################
 # CODE COMMIT needs for flux
 ################################################################################
-module "codecommit_flux" {
-  source          = "lgallard/codecommit/aws"
-  version         = "0.2.1"
-  default_branch  = "main"
-  description     = "Flux GitOps repository"
-  repository_name = var.name
+# module "codecommit_flux" {
+#   source          = "lgallard/codecommit/aws"
+#   version         = "0.2.1"
+#   default_branch  = "main"
+#   description     = "Flux GitOps repository"
+#   repository_name = var.name
+# }
+
+module "git_hub_repositorie_gitops" {
+  source      = "../git"
+  name        = var.name
+  description = "Flux GitOps repository"
 }
 
 resource "aws_iam_user" "codecommit_user" {
