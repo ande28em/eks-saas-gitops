@@ -65,25 +65,41 @@ output "argoworkflows_deployment_queue_url" {
 ##################
 # Flux Repo
 ##################
-# output "aws_codecommit_flux_clone_url_http" {
-#   description = "AWS CodeCommit HTTP based clone URL"
-#   value       = module.codecommit_flux.clone_url_http
-# }
 
-# output "aws_codecommit_flux_clone_url_ssh" {
-#   description = "AWS CodeCommit SSH based clone URL including the SSH public key ID for the Flux repository."
-#   value = replace(
-#     module.codecommit_flux.clone_url_ssh,
-#     "ssh://",
-#     format("ssh://%s@", aws_iam_user_ssh_key.codecommit_user.ssh_public_key_id)
-#   )
-# }
+##################
+# Flux Repo
+##################
+output "aws_codecommit_flux_clone_url_ssh" {
+  description = "SSH clone URL for the repository"
+  value = var.use_github ? (
+    module.git_hub_repository_gitops.git_ssh_clone_url # Changed from git_hub_repositories
+    ) : (
+    length(aws_iam_user_ssh_key.codecommit_user) > 0 ? (
+      replace(
+        module.codecommit[var.flux_repository_name].clone_url_ssh,
+        "ssh://",
+        format("ssh://%s@", aws_iam_user_ssh_key.codecommit_user[0].ssh_public_key_id)
+      )
+    ) : null
+  )
+}
 
+output "ssh_public_key_id" {
+  description = "The SSH public key ID for the CodeCommit user"
+  value = var.use_github ? null : (
+    length(aws_iam_user_ssh_key.codecommit_user) > 0 ? aws_iam_user_ssh_key.codecommit_user[0].ssh_public_key_id : null
+  )
+}
 
-# output "ssh_public_key_id" {
-#   description = "The SSH public key ID for the CodeCommit user"
-#   value       = aws_iam_user_ssh_key.codecommit_user.ssh_public_key_id
-# }
+output "repository_url" {
+  description = "URL for the Git repository (GitHub or CodeCommit)"
+  value = var.use_github ? (
+    module.git_hub_repository_gitops.git_https_clone_url # Changed from git_hub_repositories
+    ) : (
+    module.codecommit[var.flux_repository_name].clone_url_http
+  )
+}
+
 
 ##################
 # Applications

@@ -1,5 +1,5 @@
 output "aws_region" {
-  value = data.aws_region.current.name
+  value = var.aws_region
 }
 
 output "cluster_endpoint" {
@@ -53,7 +53,7 @@ output "ecr_repository_urls_onboarding" {
 }
 
 output "aws_codecommit_flux_clone_url_ssh" {
-  description = "AWS CodeCommit SSH based clone URL"
+  description = "Repository SSH clone URL"
   value       = module.gitops_saas_infra.aws_codecommit_flux_clone_url_ssh
 }
 
@@ -127,5 +127,14 @@ output "account_id" {
 
 output "configure_kubectl" {
   description = "Configure kubectl: make sure you're logged in with the correct AWS profile and run the following command to update your kubeconfig"
-  value       = "aws eks --region ${data.aws_region.current.name} update-kubeconfig --name ${module.eks.cluster_name}"
+  value       = format("aws eks --region %s update-kubeconfig --name %s", var.aws_region, module.eks.cluster_name)
+}
+
+output "debug_github_owner" {
+  value = var.github_owner
+}
+
+output "debug_github_token_exists" {
+  value     = var.github_token != ""
+  sensitive = true
 }

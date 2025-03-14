@@ -586,22 +586,26 @@ module "lb_controller_irsa" {
 #   repository_name = var.name
 # }
 
-module "git_hub_repositorie_gitops" {
-  source      = "../git"
-  name        = var.name
-  description = "Flux GitOps repository"
+module "git_hub_repository_gitops" {
+  source       = "../git"
+  name         = var.flux_repository_name
+  description  = "Flux GitOps repository"
+  github_token = var.github_token
 }
 
 resource "aws_iam_user" "codecommit_user" {
-  name = local.code_commit_username # Key will be uploaded to this user in order to be able to clone the repo
+  count = var.use_github ? 0 : 1
+  name  = local.code_commit_username
 }
 
 resource "aws_iam_user_policy_attachment" "codecommit_user_attach" {
-  user       = local.code_commit_username
+  count      = var.use_github ? 0 : 1
+  user       = aws_iam_user.codecommit_user[0].name
   policy_arn = "arn:aws:iam::aws:policy/AWSCodeCommitPowerUser"
 }
 
 resource "aws_iam_user_ssh_key" "codecommit_user" {
+  count      = var.use_github ? 0 : 1
   username   = local.code_commit_username
   encoding   = "SSH"                               # Use "SSH" for SSH public keys
   public_key = file("${var.public_key_file_path}") # Adjust the path as necessary

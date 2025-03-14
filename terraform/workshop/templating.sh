@@ -9,13 +9,19 @@ export_simple_outputs() {
 
     # Read from the temporary file to export variables
     while IFS= read -r line; do
-        eval "export $line"
+        # For configure_kubectl, wrap the value in quotes
+        if [[ $line == configure_kubectl* ]]; then
+            key="${line%%=*}"
+            value="${line#*=}"
+            eval "export $key=\"$value\""
+        else
+            eval "export $line"
+        fi
     done < "$temp_file"
 
     # Clean up the temporary file
     rm "$temp_file"
 }
-
 
 clone_git_repos() {
     local git_urls="$1"  # List of Git repository URLs separated by spaces
@@ -152,6 +158,19 @@ clone_dir="$1" # No need to put / eg. /tmp/
 terraform_output="./output.json"
 
 export_simple_outputs "$terraform_output"
+
+echo "Creating necessary directories..."
+mkdir -p "$clone_dir/consumer"
+mkdir -p "$clone_dir/payments"
+mkdir -p "$clone_dir/producer"
+mkdir -p "$clone_dir/eks-saas-gitops"
+mkdir -p "$clone_dir/eks-saas-gitops/helm-charts"
+
+# Add error checking
+if [ $? -ne 0 ]; then
+    echo "Failed to create required directories"
+    exit 1
+fi
 
 # Clone Git repositories
 git_list="$codecommit_repository_urls_consumer $codecommit_repository_urls_payments $codecommit_repository_urls_producer $aws_codecommit_flux_clone_url_ssh"

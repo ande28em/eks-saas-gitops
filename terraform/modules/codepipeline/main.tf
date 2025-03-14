@@ -62,16 +62,19 @@ resource "aws_codepipeline" "pipeline" {
     action {
       name             = "Source"
       category         = "Source"
-      owner            = "ThirdParty"
-      provider         = "GitHub"
+      owner            = var.use_github ? "ThirdParty" : "AWS"
+      provider         = var.use_github ? "GitHub" : "CodeCommit"
       version          = "1"
       output_artifacts = ["SourceArtifact"]
 
-      configuration = {
+      configuration = var.use_github ? {
         Owner      = var.github_owner
         Repo       = var.repo_name
         Branch     = var.branch_name
         OAuthToken = var.github_oauth_token
+        } : {
+        RepositoryName = var.repo_name
+        BranchName     = var.branch_name
       }
     }
   }

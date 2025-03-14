@@ -7,7 +7,7 @@ variable "name" {
 variable "aws_region" {
   description = "AWS region"
   type        = string
-  default     = ""
+  default     = "us-east-1"
 }
 
 variable "vpc_cidr" {
@@ -53,11 +53,17 @@ variable "kustomization_path" {
 
 ###### Git Provider
 variable "github_owner" {
-  default = "lusoal"
+  default = "ande28em"
 }
 
-variable "github_personal_token" {
+variable "github_token" {
   description = "GitHub Personal Access Token"
   type        = string
   default     = ""
+}
+
+variable "use_github" {
+  description = "Use GitHub as Git Provider"
+  type        = bool
+  default     = false
 }

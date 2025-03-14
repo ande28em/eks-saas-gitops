@@ -27,7 +27,7 @@ variable "repo_name" {
 }
 
 variable "branch_name" {
-  description = "AWS Codecommit branch name"
+  description = "AWS Codecommit or Github branch name"
   type        = string
   default     = "main"
 }
@@ -49,4 +49,9 @@ variable "github_oauth_token" {
 
 variable "github_owner" {
   description = "GitHub Owner or Org"
+}
+
+variable "use_github" {
+  description = "Use GitHub as source"
+  type        = bool
 }

@@ -81,11 +81,26 @@ variable "public_key_file_path" {
   default     = "~/.ssh/id_rsa.pub"
 }
 
-variable "github_personal_token" {
-  description = "Value of GitHub Personal Access Tken to create repositories"
-}
-
 variable "github_owner" {
-  description = "GitHub Owner or Org"
+  description = "GitHub Owner or Organization"
+  type        = string
+  sensitive   = true # Optional, depending on your security requirements
 }
 
+
+variable "use_github" {
+  description = "Use GitHub as source control"
+  default     = false
+}
+
+variable "flux_repository_name" {
+  description = "Name of the Flux repository"
+  type        = string
+  default     = "flux"
+}
+
+variable "github_token" {
+  description = "Value of GitHub Personal Access Tken to create repositories"
+  type        = string
+  default     = ""
+}

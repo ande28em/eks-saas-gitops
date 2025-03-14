@@ -23,11 +23,15 @@ terraform {
 }
 
 provider "github" {
-  token = var.github_personal_token
+  token = var.github_token
+  owner = var.github_owner
 }
 
 # Terraform Providers
-provider "aws" {}
+// TODO: Doesn't work if not hard coded, maybe just an issue with setting env vars
+provider "aws" {
+  region = "us-east-1"
+}
 
 provider "kubernetes" {
   host                   = module.eks.cluster_endpoint
@@ -37,7 +41,7 @@ provider "kubernetes" {
     api_version = "client.authentication.k8s.io/v1beta1"
     command     = "aws"
     # This requires the awscli to be installed locally where Terraform is executed
-    args = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--region", local.region]
+    args = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--region", var.aws_region]
   }
 }
 

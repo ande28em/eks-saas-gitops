@@ -93,3 +93,5 @@ resource "aws_codebuild_project" "example" {
 
   tags = var.tags
 }
+
+// TODO add auth for github repo - not needed for codebuild

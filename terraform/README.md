@@ -6,12 +6,18 @@ This comprehensive guide is designed to assist you in efficiently setting up and
 
 Before initiating the setup process, please ensure the following tools are installed and configured on your system:
 
+
+- **AWS Credentials**: Essential for authenticating AWS CLI and Terraform commands. [Configuration Guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)
+- **Key Pairs (Private and Public)**: Secure your connections with SSH keys. [SSH Key Generation Guide](https://en.wikibooks.org/wiki/Cryptography/Generate_a_keypair_using_OpenSSL)
+- **GitHub Access Token** (if using GitHub repositories): The token will need the following permissions:
+    - `repo`        "Full control of private repositories"
+    - `delete_repo` "Delete repositories"
+- **Helm**: The package manager for Kubernetes. [Installation Guide](https://helm.sh/docs/intro/install/)
+- **Docker**: Docker is an open platform for developing, shipping, and running applications. [Installation Guide](https://docs.docker.com/engine/install/)
 - **Terraform**: Automate infrastructure management with ease. [Installation Guide](https://learn.hashicorp.com/tutorials/terraform/install-cli)
 - **Kubectl**: Interact with your Kubernetes cluster. [Installation Guide](https://kubernetes.io/docs/tasks/tools/)
 - **Flux CLI**: Manage GitOps for your cluster. [Installation Guide](https://fluxcd.io/flux/installation/)
 - **AWS CLI**: Control AWS services directly from your terminal. [Installation Guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
-- **AWS Credentials**: Essential for authenticating AWS CLI and Terraform commands. [Configuration Guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)
-- **Key Pairs (Private and Public)**: Secure your connections with SSH keys. [SSH Key Generation Guide](https://en.wikibooks.org/wiki/Cryptography/Generate_a_keypair_using_OpenSSL)
 
 ## Installation Steps
 
@@ -23,25 +29,37 @@ export AWS_REGION=""
 ssh-keyscan "git-codecommit.$AWS_REGION.amazonaws.com" >> ~/.ssh/known_hosts
 ```
 
-### Step 2: Run the Installation Script
+### Step 2a: Run Install with GitHub (Recommended)
+Use this option if you are provisioning within your own AWS account outside of an AWS event.
 
-Replace the following variables with your own values.
+Replace the following variables with your own values:
 
-- `REPO_PATH`: Where to clone the created CodeCommit repositories. eg. `/tmp/workshop`
-- `PUBLIC_KEY`: Path to the public key generated previously
-- `PRIVATE_KEY`: Path to the private key generated previously
-- `KNOWN_HOSTS`: Path to known hosts file.
+- `REPO_PATH`: Where to clone the created CodeCommit repositories locally. eg. `/tmp/workshop`
+- `GITHUB_TOKEN`: The access token you created.
+- `GITHUB_OWNER`: Your GitHub username. 
 
+```bash
+export REPO_PATH=""
+export GITHUB_TOKEN=""
+export GITHUB_OWNER=""
+```
+
+Run `install.sh` with the environment variables. The `true` flag is setting a `use_github` flag.
+```bash
+sh install.sh "true,$GITHUB_TOKEN,$GITHUB_OWNER" $REPO_PATH
+```
+
+### Step 2b: Run Install with CodeCommit
+This option is only meant for AWS provisioned environments. Do not use the CodeBuild options if you are running this outside of an AWS event.
 ```bash
 export REPO_PATH=""
 export PUBLIC_KEY=""
 export PRIVATE_KEY=""
 export KNOWN_HOSTS=""
 ```
-The `install.sh` script streamlines the provisioning process. 
-
+Run `install.sh` with the environment variables. The `false` flag is setting a `use_github` flag.
 ```bash
-./install.sh $PUBLIC_KEY $PRIVATE_KEY $REPO_PATH $KNOWN_HOSTS
+sh install.sh "false" $PUBLIC_KEY $PRIVATE_KEY $REPO_PATH $KNOWN_HOSTS
 ```
 
 ### Step 3: Accessing the Environment
@@ -88,3 +106,14 @@ This script dynamically identifies and deletes failed Helm releases, then reconc
 For a detailed guide on deploying and testing the architecture, including the deployment of tenants, setting up SQS queues, and managing Kubernetes deployments, please refer to the following Workshop:
 
 [Building SaaS applications on Amazon EKS using GitOps](https://catalog.workshops.aws/eks-saas-gitops).
+
+## Cleanup
+Follow the instructions below based on whether you are using GitHub or CodeCommit:
+### GitHub:
+```bash
+sh destroy.sh "true,$GITHUB_TOKEN,$GITHUB_OWNER" $REPO_PATH
+```
+### CodeCommit
+```bash
+sh destroy.sh "false" $PUBLIC_KEY $PRIVATE_KEY $REPO_PATH $KNOWN_HOSTS
+```

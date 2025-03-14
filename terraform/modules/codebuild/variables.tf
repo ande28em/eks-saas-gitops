@@ -38,6 +38,7 @@ variable "tags" {
   default     = {}
 }
 
+// TODO scope down
 variable "iam_policy" {
   description = "AWS Codebuild IAM Policy"
   type        = any
