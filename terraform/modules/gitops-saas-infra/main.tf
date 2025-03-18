@@ -576,20 +576,25 @@ module "lb_controller_irsa" {
 }
 
 ################################################################################
-# CODE COMMIT needs for flux
+# Flux Repository - either CodeCommit or GitHub
 ################################################################################
-# module "codecommit_flux" {
-#   source          = "lgallard/codecommit/aws"
-#   version         = "0.2.1"
-#   default_branch  = "main"
-#   description     = "Flux GitOps repository"
-#   repository_name = var.name
-# }
+# Flux repository for CodeCommit
+module "codecommit_flux" {
+  count           = var.use_github ? 0 : 1
+  source          = "lgallard/codecommit/aws"
+  version         = "0.2.1"
+  default_branch  = "main"
+  description     = "Flux GitOps repository"
+  repository_name = var.flux_repository_name
+}
 
+# Flux repository for GitHub
 module "git_hub_repository_gitops" {
+  count        = var.use_github ? 1 : 0
   source       = "../git"
   name         = var.flux_repository_name
   description  = "Flux GitOps repository"
+  visibility   = "private"
   github_token = var.github_token
 }
 

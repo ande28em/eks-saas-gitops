@@ -52,18 +52,20 @@ variable "kustomization_path" {
 }
 
 ###### Git Provider
-variable "github_owner" {
-  default = "ande28em"
+variable "use_github" {
+  description = "Whether to use GitHub instead of CodeCommit"
+  type        = bool
+  default     = false
 }
 
 variable "github_token" {
-  description = "GitHub Personal Access Token"
+  description = "GitHub personal access token"
   type        = string
   default     = ""
 }
 
-variable "use_github" {
-  description = "Use GitHub as Git Provider"
-  type        = bool
-  default     = false
+variable "github_owner" {
+  description = "GitHub owner or organization"
+  type        = string
+  default     = ""
 }

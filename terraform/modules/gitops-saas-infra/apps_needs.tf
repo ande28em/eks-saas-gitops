@@ -41,25 +41,27 @@ resource "aws_s3_bucket" "codeartifacts" {
   force_destroy = true
 }
 
+# CodeCommit repositories (created when use_github = false)
 module "codecommit" {
   source   = "lgallard/codecommit/aws"
   version  = "0.2.1"
-  for_each = merge(var.microservices, { "${var.flux_repository_name}" = { description = "Flux GitOps repository", default_branch = "main" } })
+  for_each = var.use_github ? {} : var.microservices
 
   repository_name = each.key
   description     = each.value.description
   default_branch  = try(each.value.default_branch, "main")
 }
 
-
+# GitHub repositories (created when use_github = true)
 module "git_hub_repositories" {
   source       = "../git"
-  for_each     = var.microservices
+  for_each     = var.use_github ? var.microservices : {}
   name         = each.key
   description  = each.value.description
   visibility   = "private"
   github_token = var.github_token
 }
+
 
 
 resource "aws_ecr_repository" "microservice_container" {
@@ -96,10 +98,10 @@ module "codepipeline" {
 
   pipeline_name      = each.value.pipeline_name
   codebuild_project  = module.codebuild_project[each.key].name
-  repo_name          = module.codecommit[each.key].name
+  repo_name          = var.use_github ? module.git_hub_repositories[each.key].name : module.codecommit[each.key].name
   bucket_id          = aws_s3_bucket.codeartifacts.id
-  github_oauth_token = var.github_token
-  github_owner       = var.github_owner
+  github_oauth_token = var.use_github ? var.github_token : null
+  github_owner       = var.use_github ? var.github_owner : null
   use_github         = var.use_github
   branch_name        = "main"
 }
