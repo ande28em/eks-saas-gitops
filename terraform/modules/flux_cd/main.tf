@@ -41,8 +41,26 @@ resource "helm_release" "flux2-sync" {
 
   set {
     name  = "gitRepository.spec.url"
-    value = var.git_url # The repository URL, can be an HTTP/S or SSH address.
+    value = var.use_github ? "https://github.com/${var.github_owner}/flux.git" : var.git_url
   }
+
+  # Add these settings for GitHub HTTPS auth
+  dynamic "set" {
+    for_each = var.use_github ? [1] : []
+    content {
+      name  = "secret.data.username"
+      value = "git"
+    }
+  }
+
+  dynamic "set" {
+    for_each = var.use_github ? [1] : []
+    content {
+      name  = "secret.data.password"
+      value = var.github_token
+    }
+  }
+
 
   set {
     name  = "kustomization.spec.path"
@@ -101,4 +119,15 @@ resource "helm_release" "flux2" {
   }
 
   depends_on = [kubernetes_namespace.flux_system]
+}
+
+# TODO remove
+output "debug_flux" {
+  value = {
+    use_github = var.use_github
+    has_token  = var.github_token != ""
+    owner      = var.github_owner
+    git_url    = var.git_url
+  }
+  sensitive = true
 }

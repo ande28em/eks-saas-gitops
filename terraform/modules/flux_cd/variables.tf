@@ -113,3 +113,23 @@ variable "flux2_version" {
 variable "flux2_sync_secret_values" {
   default = ""
 }
+
+variable "use_github" {
+  description = "Whether to use GitHub instead of CodeCommit"
+  type        = bool
+  default     = false
+}
+
+variable "github_token" {
+  description = "GitHub personal access token for private repository access"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "github_owner" {
+  description = "GitHub owner/organization name"
+  type        = string
+}
+
+    

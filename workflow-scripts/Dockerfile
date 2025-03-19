@@ -4,22 +4,26 @@ FROM alpine:latest
 ARG aws_region
 ENV AWS_REGION=$aws_region
 
+# Add build argument for git provider
+ARG git_provider=codecommit
+ENV GIT_PROVIDER=$git_provider
+
 # Install necessary dependencies
 RUN apk update && \
     apk add --no-cache \
-        ca-certificates \
-        git \
-        openssh \
-        openssl \
-        wget \
-        unzip \
-        jq \
-        yq \
-        bash \
-        curl # Added curl to fetch kubectl
+    ca-certificates \
+    git \
+    openssh \
+    openssl \
+    wget \
+    unzip \
+    jq \
+    yq \
+    bash \
+    curl
 
 # Install Terraform
-ENV TERRAFORM_VERSION=1.5.1
+ENV TERRAFORM_VERSION=1.11.2
 RUN wget --quiet https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
     unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/bin && \
     rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip
@@ -31,5 +35,21 @@ RUN curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubec
     mv ./kubectl /usr/local/bin/kubectl
 
 COPY . /
-# Display installed versions TODO: Change Keyscan from CodeCommit ro GitHub
-RUN terraform version && git version && kubectl version --client && mkdir -p /root/.ssh/ && ssh-keyscan "git-codecommit.${AWS_REGION}.amazonaws.com" >> /root/.ssh/known_hosts
+
+# Setup git configuration based on provider
+RUN terraform version && git version && kubectl version --client && \
+    if [ "$GIT_PROVIDER" = "github" ]; then \
+    git config --global credential.helper store; \
+    else \
+    mkdir -p /root/.ssh/ && \
+    ssh-keyscan git-codecommit.${AWS_REGION}.amazonaws.com >> /root/.ssh/known_hosts; \
+    fi
+
+# Add a script to setup GitHub credentials at runtime if needed
+RUN echo '#!/bin/sh\n\
+    if [ "$GIT_PROVIDER" = "github" ] && [ -n "$GITHUB_TOKEN" ]; then\n\
+    echo "https://oauth2:$GITHUB_TOKEN@github.com" > /root/.git-credentials\n\
+    fi\n\
+    exec "$@"' > /entrypoint.sh && chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

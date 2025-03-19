@@ -31,12 +31,11 @@ module "flux_v2" {
   ca               = module.eks.cluster_certificate_authority_data
   token            = data.aws_eks_cluster_auth.this.token
   git_branch       = var.git_branch
+  github_owner     = var.github_owner
+  github_token     = var.github_token
+  use_github       = var.use_github
   git_url = var.use_github ? (
-    replace(
-      module.gitops_saas_infra.aws_codecommit_flux_clone_url_ssh,
-      "git@github.com:",
-      "ssh://git@github.com/"
-    )
+    "https://github.com/${var.github_owner}/flux.git"
   ) : module.gitops_saas_infra.aws_codecommit_flux_clone_url_ssh
   kustomization_path                         = var.kustomization_path
   flux2_sync_secret_values                   = var.flux2_sync_secret_values
