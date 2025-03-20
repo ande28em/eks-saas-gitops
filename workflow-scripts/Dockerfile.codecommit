@@ -4,10 +4,6 @@ FROM alpine:latest
 ARG aws_region
 ENV AWS_REGION=$aws_region
 
-# Add build argument for git provider
-ARG git_provider=codecommit
-ENV GIT_PROVIDER=$git_provider
-
 # Install necessary dependencies
 RUN apk update && \
     apk add --no-cache \
@@ -36,20 +32,9 @@ RUN curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubec
 
 COPY . /
 
-# Setup git configuration based on provider
-RUN terraform version && git version && kubectl version --client && \
-    if [ "$GIT_PROVIDER" = "github" ]; then \
-    git config --global credential.helper store; \
-    else \
+# Setup SSH for CodeCommit
+RUN terraform version && git version && kubectl version --client --short && \
     mkdir -p /root/.ssh/ && \
-    ssh-keyscan git-codecommit.${AWS_REGION}.amazonaws.com >> /root/.ssh/known_hosts; \
-    fi
+    ssh-keyscan git-codecommit.${AWS_REGION}.amazonaws.com >> /root/.ssh/known_hosts
 
-# Add a script to setup GitHub credentials at runtime if needed
-RUN echo '#!/bin/sh\n\
-    if [ "$GIT_PROVIDER" = "github" ] && [ -n "$GITHUB_TOKEN" ]; then\n\
-    echo "https://oauth2:$GITHUB_TOKEN@github.com" > /root/.git-credentials\n\
-    fi\n\
-    exec "$@"' > /entrypoint.sh && chmod +x /entrypoint.sh
-
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/bin/sh"]

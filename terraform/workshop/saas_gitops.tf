@@ -14,12 +14,23 @@ module "gitops_saas_infra" {
 }
 
 resource "null_resource" "execute_templating_script" {
+  triggers = {
+    always_run = timestamp()
+  }
+
   provisioner "local-exec" {
-    command = "bash ${path.module}/templating.sh ${var.clone_directory} "
+    command = <<-EOT
+      export AWS_REGION=${var.aws_region}
+      export GIT_PROVIDER=${var.use_github ? "github" : "codecommit"}
+      export GITHUB_TOKEN=${var.github_token}
+      export GITHUB_OWNER=${var.github_owner}
+      bash ${path.module}/templating.sh ${var.clone_directory}
+    EOT
   }
 
   depends_on = [module.gitops_saas_infra]
 }
+
 
 
 ################################################################################

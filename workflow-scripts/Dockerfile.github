@@ -1,0 +1,40 @@
+# Use a lightweight base image
+FROM alpine:latest
+
+# Install necessary dependencies
+RUN apk update && \
+    apk add --no-cache \
+    ca-certificates \
+    git \
+    wget \
+    unzip \
+    jq \
+    yq \
+    bash \
+    curl
+
+# Install Terraform
+ENV TERRAFORM_VERSION=1.11.2
+RUN wget --quiet https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
+    unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/bin && \
+    rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+
+# Install kubectl
+ENV KUBECTL_VERSION=v1.27.0
+RUN curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" && \
+    chmod +x ./kubectl && \
+    mv ./kubectl /usr/local/bin/kubectl
+
+COPY . /
+
+# Setup git configuration for GitHub
+RUN git config --global credential.helper store
+
+# Add script to setup GitHub credentials at runtime
+RUN echo '#!/bin/sh\n\
+    if [ -n "$GITHUB_TOKEN" ]; then\n\
+    echo "https://oauth2:$GITHUB_TOKEN@github.com" > /root/.git-credentials\n\
+    fi\n\
+    exec "$@"' > /entrypoint.sh && chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

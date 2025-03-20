@@ -1,5 +1,18 @@
 #!/bin/bash
 
+DOCKERFILE_PATH="../workflow-scripts"
+
+# Set default Git provider
+GIT_PROVIDER=${GIT_PROVIDER:-github}
+
+# Build appropriate Docker image for Git operations
+echo "Building Docker image for $GIT_PROVIDER..."
+if [ "$GIT_PROVIDER" = "github" ]; then
+    docker build -f Dockerfile.github -t gitops-github .
+else
+    docker build -f Dockerfile.codecommit --build-arg aws_region=$AWS_REGION -t gitops-codecommit .
+fi
+
 export_simple_outputs() {
     terraform output -json > "$1"
 
@@ -122,14 +135,14 @@ build_and_push_image() {
     echo "Building and pushing Docker image for ${service_dir}..."
 
     # Log in to Amazon ECR, region is outputed on terraform output
-    aws ecr get-login-password --region "$aws_region" | docker login --username AWS --password-stdin "$account_id".dkr.ecr."$aws_region".amazonaws.com
+    aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$account_id.dkr.ecr.$AWS_REGION.amazonaws.com"
 
     if [ $(uname -m) = "arm64" ]; then
         # Build the Docker image with a specific tag and for a specific platform
-        docker buildx build --platform linux/amd64 --build-arg aws_region=$aws_region -t "${ecr_repo_url}:${image_version}" . --load
+        docker buildx build --platform linux/amd64 --build-arg aws_region=$AWS_REGION -t "${ecr_repo_url}:${image_version}" . --load
     else 
     # Build without buildx for non-ARM
-        docker build --build-arg aws_region=$aws_region -t "${ecr_repo_url}:${image_version}" .
+        docker build --build-arg aws_region=$AWS_REGION -t "${ecr_repo_url}:${image_version}" .
     fi
 
     # Push the Docker image to Amazon ECR
@@ -145,7 +158,7 @@ package_and_push_helm_chart() {
 
     echo "Packaging and Pushing Helm Chart $chart_name to ECR"
     cd "$chart_dir" || exit
-    aws ecr get-login-password --region "$aws_region" | helm registry login --username AWS --password-stdin $account_id.dkr.ecr.$aws_region.amazonaws.com
+    aws ecr get-login-password --region "$AWS_REGION" | helm registry login --username AWS --password-stdin $account_id.dkr.ecr.$AWS_REGION.amazonaws.com
     helm package "$chart_name"
     helm_chart_version=$(grep 'version:' "$chart_name/Chart.yaml" | awk '{print $2}')
     helm push "${chart_name}-${helm_chart_version}.tgz" oci://$ecr_chart_url
@@ -203,34 +216,77 @@ cd "$original_dir" || exit
 # Commit and push changes to Git
 echo "Committing and pushing changes to Git"
 cd $clone_dir/consumer || exit
-git checkout -b main
-git add .
-git commit -m "Initial Commit"
-git push origin main
+if [ "$GIT_PROVIDER" = "github" ]; then
+    docker run --rm -v "$PWD:/workspace" -e GITHUB_TOKEN="$GITHUB_TOKEN" gitops-github /bin/sh -c '
+        cd /workspace &&
+        git checkout -b main &&
+        git add . &&
+        git commit -m "Initial Commit" &&
+        git push origin main
+    '
+else
+    git checkout -b main
+    git add .
+    git commit -m "Initial Commit"
+    git push origin main
+fi
 
 cd $clone_dir/producer || exit
-git checkout -b main
-git add .
-git commit -m "Initial Commit"
-git push origin main
+if [ "$GIT_PROVIDER" = "github" ]; then
+    docker run --rm -v "$PWD:/workspace" -e GITHUB_TOKEN="$GITHUB_TOKEN" gitops-github /bin/sh -c '
+        cd /workspace &&
+        git checkout -b main &&
+        git add . &&
+        git commit -m "Initial Commit" &&
+        git push origin main
+    '
+else
+    git checkout -b main
+    git add .
+    git commit -m "Initial Commit"
+    git push origin main
+fi
 
 cd $clone_dir/payments || exit
-git checkout -b main
-git add .
-git commit -m "Initial Commit"
-git push origin main
+if [ "$GIT_PROVIDER" = "github" ]; then
+    docker run --rm -v "$PWD:/workspace" -e GITHUB_TOKEN="$GITHUB_TOKEN" gitops-github /bin/sh -c '
+        cd /workspace &&
+        git checkout -b main &&
+        git add . &&
+        git commit -m "Initial Commit" &&
+        git push origin main
+    '
+else
+    git checkout -b main
+    git add .
+    git commit -m "Initial Commit"
+    git push origin main
+fi
 
 # remove unnecessary folders from cloud9 before pushing to CodeCommit
 rm -rf $clone_dir/eks-saas-gitops/helpers
 rm -rf $clone_dir/eks-saas-gitops/tenant-microservices
 
 cd $clone_dir/eks-saas-gitops || exit
-git checkout -b main
-git add .
-git commit -m "Initial Commit"
-git push origin main
-# Tagging last commit ID
-LAST_COMMIT_ID=$(aws codecommit get-branch --repository-name "$cluster_name" --branch-name main | jq -r '.branch.commitId')
-git tag v0.0.1 $LAST_COMMIT_ID
-git push origin v0.0.1
+if [ "$GIT_PROVIDER" = "github" ]; then
+    docker run --rm -v "$PWD:/workspace" -e GITHUB_TOKEN="$GITHUB_TOKEN" gitops-github /bin/sh -c '
+        cd /workspace &&
+        git checkout -b main &&
+        git add . &&
+        git commit -m "Initial Commit" &&
+        git push origin main &&
+        LAST_COMMIT_ID=$(git rev-parse HEAD) &&
+        git tag v0.0.1 $LAST_COMMIT_ID &&
+        git push origin v0.0.1
+    '
+else
+    git checkout -b main
+    git add .
+    git commit -m "Initial Commit"
+    git push origin main
+    # Tagging last commit ID
+    LAST_COMMIT_ID=$(aws codecommit get-branch --repository-name "$cluster_name" --branch-name main | jq -r '.branch.commitId')
+    git tag v0.0.1 $LAST_COMMIT_ID
+    git push origin v0.0.1
+fi
 cd "$original_dir" || exit
